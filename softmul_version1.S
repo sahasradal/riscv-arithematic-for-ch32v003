@@ -1,4 +1,10 @@
 # soft multiplication shift and add method with 2n register and carry implementation.
+.data
+multiplicand: .word 0
+multiplier: .word 0
+result_lo: .word 0
+result_hi: .word 0
+
 
 .text
 	addi sp,sp,-52
@@ -16,10 +22,10 @@
 	sw x7,44(sp)
 	sw x8,48(sp)
 
-	la a0,result1
+	la a0,multiplicand
  	lw a1,0(a0) 		# multiplicant
-	la a0,scratchpad
- 	lw a2,0(a0)		# multiplier calculated by calibration in setup
+	la a0,multiplier
+ 	lw a2,0(a0)		# multiplier 
  	li a3,0x00000000 	# result_lo
  	li a4,0x00000000 	# result_hi
  	li a5,0			# working register 
