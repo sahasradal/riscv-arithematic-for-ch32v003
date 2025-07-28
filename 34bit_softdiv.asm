@@ -1,4 +1,4 @@
-# tested on rars
+# tested on rars , works but very cumbersome
 .data
 result_lo: .word 0
 result_hi: .word 0
