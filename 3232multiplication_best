@@ -1,0 +1,96 @@
+# tested fine , all edge cases resolved, DS verified
+.data 
+buffer: .word 0
+buffer1: .word 0
+result_lo: .word 0
+result_hi: .word 0
+modulo:    .word 0
+
+.text
+    la a0, buffer
+    li x7,0xdeadbeef
+    sw x7, 0(a0)       # s0 = multiplicand (A)
+    la a0, buffer1
+    li x7,0xffffffff
+    sw x7, 0(a0)       # s1 = multiplier (B)
+    call multiply
+here:
+	j here
+
+
+
+
+
+multiply:
+    # Save registers
+    addi sp, sp, -24
+    sw ra, 0(sp)
+    sw s0, 4(sp)
+    sw s1, 8(sp)
+    sw s2, 12(sp)
+    sw s3, 16(sp)
+    sw s4, 20(sp)
+
+    # Load operands
+    la a0, buffer
+    lw s0, 0(a0)       # s0 = multiplicand (A)
+    la a0, buffer1
+    lw s1, 0(a0)       # s1 = multiplier (B)
+    
+    # Initialize registers
+    li s2, 0           # s2 = hi part of result
+    li s3, 0           # s3 = lo part of result
+    li s4, 0           # s4 = carry flag
+    li t0, 32          # t0 = counter (32 bits)
+
+mult_loop:
+    # Check LSB of multiplier
+    andi t1, s1, 1
+    beqz t1, shift_only
+
+    # Add multiplicand to hi with carry
+    add s2, s2, s0     # hi += multiplicand
+    sltu s4, s2, s0    # set carry if overflow (s4 = 1 if carry)
+
+shift_only:
+    # Shift the 64-bit result right by 1
+    # First prepare what will become the new MSB of hi
+    slli t1, s4, 31    # move carry to MSB position
+    
+    # Save current LSB of hi for lo shift
+    andi t2, s2, 1
+    
+    # Shift hi (including carry)
+    srli s2, s2, 1     # shift hi right
+    or s2, s2, t1      # insert carry
+    
+    # Shift lo (taking bit from hi)
+    srli s3, s3, 1     # shift lo right
+    slli t2, t2, 31    # move hi's LSB to MSB position
+    or s3, s3, t2      # insert into lo
+    
+    # Prepare carry for next iteration
+    mv s4, t2          # carry = the bit we just shifted into lo
+    
+    # Shift multiplier
+    srli s1, s1, 1
+    
+    # Decrement counter
+    addi t0, t0, -1
+    bnez t0, mult_loop
+
+    # Store results
+    la a0, result_hi
+    sw s2, 0(a0)
+    la a0, result_lo
+    sw s3, 0(a0)
+
+    # Restore registers
+    lw ra, 0(sp)
+    lw s0, 4(sp)
+    lw s1, 8(sp)
+    lw s2, 12(sp)
+    lw s3, 16(sp)
+    lw s4, 20(sp)
+    addi sp, sp, 24
+    ret
