@@ -1,4 +1,4 @@
-# soft multiplication shift and add method with 2n register and carry implementation.
+# soft multiplication shift and add method with 2n register and carry implementation. some issues , need diagnosis
 .data
 multiplicand: .word 0
 multiplier: .word 0
